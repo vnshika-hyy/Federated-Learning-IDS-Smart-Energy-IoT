@@ -18,3 +18,6 @@ Detect cyber attacks using hybrid deep learning models (CNN-LSTM)
 
 Mitigate poisoning and Byzantine attacks using robust aggregation
 
+Dataset not included due to size limitations.
+Please download the dataset from CICIDS2017 and place it in data/raw/ .
+
