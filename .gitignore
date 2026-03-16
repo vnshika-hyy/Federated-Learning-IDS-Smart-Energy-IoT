@@ -3,3 +3,7 @@ data/processed/
 
 *.npy
 *.parquet
+*.pyc
+*.pth
+*.zip
+__pycache__/

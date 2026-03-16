@@ -4,51 +4,48 @@ import os
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
-RAW_DIR = "data/raw"
+RAW_FILE = "data/raw/smart_energy_iot_attack_data.csv"
 PROCESSED_DIR = "data/processed"
 
-print("Starting preprocessing pipeline...")
+print("Starting preprocessing...")
 
-files = [f for f in os.listdir(RAW_DIR) if f.endswith(".parquet")]
+data = pd.read_csv(RAW_FILE)
 
-dfs = []
+print("Dataset shape:", data.shape)
 
-for f in files:
-    print("Loading:", f)
-    df = pd.read_parquet(os.path.join(RAW_DIR, f))
-    dfs.append(df)
+# encode categorical columns
+data["device_id"] = data["device_id"].astype("category").cat.codes
+data["protocol"] = data["protocol"].astype("category").cat.codes
 
-data = pd.concat(dfs)
+# encode labels
+data["label"] = data["label"].apply(lambda x: 0 if x == "Normal" else 1)
 
-print("Dataset loaded:", data.shape)
+# drop timestamp
+data = data.drop("timestamp", axis=1)
 
-# clean data
-data.replace([np.inf, -np.inf], np.nan, inplace=True)
-data.dropna(inplace=True)
-
-print("After cleaning:", data.shape)
-
-# encode label
-data["Label"] = data["Label"].apply(lambda x: 0 if x == "BENIGN" else 1)
-
-X = data.drop("Label", axis=1)
-y = data["Label"]
+X = data.drop("label", axis=1)
+y = data["label"]
 
 # scale features
 scaler = StandardScaler()
+
 X_scaled = scaler.fit_transform(X)
 
-# train test split
+# split
 X_train, X_test, y_train, y_test = train_test_split(
-    X_scaled, y, test_size=0.2, random_state=42
+    X_scaled,
+    y,
+    test_size=0.2,
+    stratify=y,
+    random_state=42
 )
 
 os.makedirs(PROCESSED_DIR, exist_ok=True)
 
 np.save(os.path.join(PROCESSED_DIR, "X_train.npy"), X_train)
 np.save(os.path.join(PROCESSED_DIR, "X_test.npy"), X_test)
+
 np.save(os.path.join(PROCESSED_DIR, "y_train.npy"), y_train)
 np.save(os.path.join(PROCESSED_DIR, "y_test.npy"), y_test)
 
 print("Preprocessing complete")
-print("Files saved in data/processed")

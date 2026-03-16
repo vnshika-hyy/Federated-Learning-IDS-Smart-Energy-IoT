@@ -1,5 +1,15 @@
 import numpy as np
 
+def detect_byzantine_clients(updates, threshold=5.0):
+    valid_updates = []
+    for update in updates:
+        distance = np.linalg.norm(update)
+
+        if distance < threshold:
+            valid_updates.append(update)
+        else:
+            print("⚠️ Malicious client update detected and removed")
+    return valid_updates
 
 def median_aggregation(metrics):
     """
@@ -17,6 +27,13 @@ def median_aggregation(metrics):
 
     for key in keys:
         values = [m[1][key] for m in metrics]
+
+        # detect malicious updates
+        values = detect_byzantine_clients(values)
+
+        if len(values) == 0:
+            continue
+
         aggregated[key] = float(np.median(values))
 
     return aggregated
@@ -68,3 +85,4 @@ def krum_aggregation(metrics):
         aggregated[key] = float(values[krum_index])
 
     return aggregated
+
